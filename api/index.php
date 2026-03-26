@@ -4,7 +4,7 @@ ini_set('display_errors', 1);
 session_start();
 include 'db.php';
 
-// LOGIN LOGIC (No changes here, kept your logic intact)
+// LOGIN LOGIC
 if (isset($_POST['login'])) {
     $username = mysqli_real_escape_string($conn, trim($_POST['username']));
     $password = $_POST['password'];
@@ -14,28 +14,23 @@ if (isset($_POST['login'])) {
 
     if ($result && $result->num_rows > 0) {
         $user = $result->fetch_assoc();
-        if (password_verify($password, $user['password'])) {
+        
+        // Check using Password Verify (Standard) or Plain Text (for legacy/testing)
+        if (password_verify($password, $user['password']) || $password === $user['password']) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['full_name'] = $user['name'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['username'] = $user['username'];
 
+            // VERCEL FIX: Nilagyan natin ng /api/ sa unahan ang redirects
             if ($user['role'] == 'admin' && $user['username'] == 'admin-2026') {
-                echo "<script>window.location.href='admin.php';</script>";
+                echo "<script>window.location.href='/api/admin.php';</script>";
             } else {
-                echo "<script>window.location.href='dashboard.php';</script>";
+                echo "<script>window.location.href='/api/dashboard.php';</script>";
             }
             exit(); 
         } else {
-            if ($password === $user['password']) {
-                 $_SESSION['user_id'] = $user['id'];
-                 $_SESSION['full_name'] = $user['name'];
-                 $_SESSION['role'] = $user['role'];
-                 echo "<script>window.location.href='dashboard.php';</script>";
-                 exit();
-            } else {
-                $error_msg = "Maling Password! Pakisuyong ulitin.";
-            }
+            $error_msg = "Maling Password! Pakisuyong ulitin.";
         }
     } else {
         $error_msg = "ID Number ($username) ay hindi nahanap sa system.";
@@ -69,7 +64,6 @@ if (isset($_POST['login'])) {
             overflow: hidden;
         }
 
-        /* Background Decor Circles */
         .circle {
             position: absolute;
             background: rgba(255, 255, 255, 0.05);
@@ -88,12 +82,7 @@ if (isset($_POST['login'])) {
             width: 100%; 
             max-width: 380px; 
             text-align: center;
-            transform: translateY(0);
             transition: all 0.4s ease;
-        }
-
-        .login-card:hover {
-            transform: translateY(-5px);
         }
 
         .logo-section { margin-bottom: 35px; }
@@ -102,7 +91,7 @@ if (isset($_POST['login'])) {
         .sub-text { color: #64748b; font-size: 14px; margin-top: 5px; font-weight: 500; }
 
         .input-group { margin-bottom: 22px; text-align: left; }
-        .input-group label { font-size: 13px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 8px; margin-left: 5px; }
+        .input-group label { font-size: 13px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 8px; }
         
         .input-wrapper { position: relative; }
         .input-wrapper i { 
@@ -111,7 +100,6 @@ if (isset($_POST['login'])) {
             top: 50%; 
             transform: translateY(-50%); 
             color: #94a3b8; 
-            transition: 0.3s;
         }
 
         .input-wrapper input { 
@@ -122,7 +110,6 @@ if (isset($_POST['login'])) {
             box-sizing: border-box; 
             outline: none; 
             font-size: 15px;
-            transition: all 0.3s ease;
             background: #f8fafc;
         }
 
@@ -131,8 +118,6 @@ if (isset($_POST['login'])) {
             background: white;
             box-shadow: 0 0 0 4px rgba(0, 74, 153, 0.1);
         }
-
-        .input-wrapper input:focus + i { color: var(--primary); }
 
         .btn-login { 
             background: var(--primary); 
@@ -146,12 +131,10 @@ if (isset($_POST['login'])) {
             font-size: 16px; 
             margin-top: 10px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 74, 153, 0.3);
         }
 
         .btn-login:hover { 
             background: #003366; 
-            box-shadow: 0 6px 20px rgba(0, 74, 153, 0.4);
             transform: scale(1.02);
         }
 
@@ -166,13 +149,6 @@ if (isset($_POST['login'])) {
             display: flex;
             align-items: center;
             gap: 10px;
-            animation: shake 0.4s ease-in-out;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
         }
 
         .footer { margin-top: 35px; font-size: 12px; color: #94a3b8; line-height: 1.5; }
